@@ -1,4 +1,4 @@
-will remove ALL objects 
+#will remove ALL objects 
 rm(list=ls())
 
 # load in library
