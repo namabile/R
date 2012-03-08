@@ -206,6 +206,20 @@ RGoogleAnalytics <- function() {
     return(ParseAccountFeedXML(api.response$body))
   }
 
+  GetSegmentsData <- function() {
+
+    api.response <- GetSegmentsXML()
+    status <- api.response$status
+
+    if (status$code != '200') {
+      error.message = ParseApiErrorMessage(api.response$body)
+      stop(paste(status$code, status$message, "\n",
+                 error.message$code, error.message$reason))
+    }
+
+    return(ParseAccountFeedXML(api.response$body))
+  }
+
   GetAccountFeedXML <- function() {
     # Makes a request to the Google Analytics API Account Feed and returns
     # the XML response as well as the status codes of the HTTP request.
@@ -225,7 +239,7 @@ RGoogleAnalytics <- function() {
       getURL("https://www.google.com/analytics/feeds/accounts/default",
              .encoding = 'UTF-8',
              httpheader = c("Authorization" = google.auth,
-               "GData-Version" = 2),
+               "GData-Version" = 2, "dataType=segments"),
              headerfunction=header$update)
 
     header.value <- parseHTTPHeader(header$value())
@@ -277,13 +291,29 @@ RGoogleAnalytics <- function() {
                                    xmlValue,
                                    namespaces = feed.name.space)))
 
+    # Return the Segment ID's from the account feed.
+    segment.id.list <-
+      data.frame(unlist(xpathApply(feed.xml,
+                                   path = "//dxp:segment",
+                                   GetAnyXMLAttribute,
+                                   "id",
+                                   namespaces = feed.name.space)))
+
+    # Return the Segment Names from the account feed.
+    segment.names.list <-
+      data.frame(unlist(xpathApply(feed.xml,
+                                   path = "//dxp:segment",
+                                   GetAnyXMLAttribute,
+                                   "name",
+                                   namespaces = feed.name.space)))
+
     ns.path <- "//ns:entry/dxp:property[@name = 'ga:accountName']"
     # Return the account name from the account feed.
     table.account.list <-
       data.frame(unlist(xpathApply(feed.xml,
                                    path = ns.path,
                                    GetAnyXMLAttribute,
-                                   "value",
+                                    "value",
                                    namespaces = feed.name.space)))
 
     # Return the profile name from the account feed.
@@ -300,9 +330,16 @@ RGoogleAnalytics <- function() {
 
     names(profile) <- c("AccountName", "ProfileName", "TableId")
 
+    # Join the data.frames for the segments and rename the variables.
+    segments <- cbind(segment.names.list,
+                     segment.id.list)
+
+    names(segments) <- c("SegmentName", "SegmentID")
+
     # We return the profiles and the results.
     return(list(profile = profile,
-                total.results = total.results))
+                total.results = total.results,
+                segments = segments))
   }
 
   GetDataFeed <- function(query.uri) {
@@ -571,7 +608,7 @@ RGoogleAnalytics <- function() {
       return(df)
 
     } else {
-      # Handle pagination. First get the number of pages needed. Then
+      # Handle pagination. First get the number of pages needed. Thenxml 
       # update the start index for each page and request the data.
 
       pagination <- min(kMaxPages, ceiling(df$total.results /

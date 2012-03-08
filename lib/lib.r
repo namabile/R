@@ -78,9 +78,22 @@ GA <- function() {
 
 		return(list(rg_profile = rg_profile, tickco_profile = tickco_profile))
 	}
+
+	GetSegments <- function () {
+		## args: 		none
+		## returns: 	returns a list with the segment names and ids
+		ga <- GAConnect()
+		segments <- ga$GetProfileData()
+		segments <- segments$segments
+		rownames(segments) <- segments$SegmentName
+		
+		return(segments)
+	}
+
 return(list(
 	GetReportData = GetReportData,
-	GetProfileIDs = GetProfileIDs
+	GetProfileIDs = GetProfileIDs,
+	GetSegments = GetSegments
 	))
 }
 
@@ -109,6 +122,14 @@ SQL <- function() {
 		else {
 			stop(print(data))
 		}		
+	}
+
+	query_from_file <- function(file) {
+		## Creates a query string from a text file supplied
+		## Then calls the query function above to run the string as a SQL with the default parameters
+		## args:		path to a text file containing a SQL query
+		## returns:		a datafrem with the SQL query results or prints an error
+
 	}
 
 return( list(
