@@ -113,6 +113,8 @@ SQL <- function() {
 		## Function to query the RG production database
 		## arge: 		SQL query string
 		## returns:		a dataframe with the SQL query results or prints an error
+		conn <- connect()
+
 		data <- sqlQuery(conn,query)
 		if (length(data) > 0) {
 			if (data == -1) {
@@ -196,10 +198,12 @@ SQL <- function() {
 			results <- c(results, result)
 		}
 		
-		return(results)
-	}
+		## return for debugging
+		return(list( results = results, query = q))
 
-conn <- connect()
+		## regular return
+		# return(results)
+	}
 
 return( list(
 	query = query,
