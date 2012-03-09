@@ -107,21 +107,24 @@ SQL <- function() {
 		## returns:		SQL connection object to the RG production database
 		conn <- odbcConnect("sql03mia", uid = "", pwd = "")
 		return(conn)
-		rm(conn)
 	}
 
 	query <- function (query) {
 		## Function to query the RG production database
 		## arge: 		SQL query string
 		## returns:		a dataframe with the SQL query results or prints an error
-		conn <- connect()
-		data <- sqlQuery(conn,query,errors= TRUE)
-		if (class(data) == "data.frame") {
-			return(data)	
+		data <- sqlQuery(conn,query)
+		if (length(data) > 0) {
+			if (data == -1) {
+				stop(print("There was an error"))
+			}
+			else {
+				return(data)
+			}
 		}
 		else {
-			stop(print(data))
-		}		
+			return(invisible())
+		}
 	}
 
 	query_from_file <- function(file) {
@@ -130,9 +133,76 @@ SQL <- function() {
 		## args:		path to a text file containing a SQL query
 		## returns:		a datafrem with the SQL query results or prints an error
 
+		query <- scan(file, what = character(), quiet = TRUE, sep ="\n")
+		
+		## remove use command if it's in there since I can't figure out how to make it work on ODBC
+		if (tolower(substr(query[1],1,3)) == "use") {
+			query<- scan(file, what = character(), quiet = TRUE, skip = 1, sep ="\n")
+		}
+		
+		## remove tabs
+		query <- gsub("\t","", query)
+		
+		## remove comments from beginning of lines
+		for (i in 1:length(query)) {
+			
+			if (substr(query[i],1,2) == "--") {
+				query[i] <- ""
+			}
+		}
+
+		## remove comments from end of lines
+		for(i in 1:length(query)) {
+			line <- query[i]
+			m <- gregexpr("--", line)
+			m<- m[[1]]
+			if (m[1] > 0) {
+				query[i] <- substr(line,1,m[1]-1)
+			}
+		}
+
+		## collapse the query into one long string
+		q <- paste(query, collapse = " ")
+
+		## check for ; to separate out commands
+		m <- gregexpr(";", q)
+		m <- m[[1]]
+		if (m[1] > 0) {
+			j <- 1
+			commands <- c()
+			for (i in 1:length(m)) {
+				k = i + 1
+				if (j == 1) {
+					command <- substr(q, 1, m[1])
+				}
+				else {
+					if (i == length(m)) {
+						command <- substring(q,m[i], nchar(q))
+					}
+					else {
+						command <- substring(q,m[i], m[k])
+					}
+				}
+				commands <- c(commands,command)
+				j <- j + 1
+			}
+		}
+		
+		## run commands specified in the commands object
+		results <- c()
+		for (i in 1:length(commands)) {
+			command <- commands[i]
+			result <- query(command)
+			results <- c(results, result)
+		}
+		
+		return(results)
 	}
 
+conn <- connect()
+
 return( list(
-	query = query
+	query = query,
+	query_from_file = query_from_file
 	))
 }
