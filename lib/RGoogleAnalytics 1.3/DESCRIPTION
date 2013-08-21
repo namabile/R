@@ -1,0 +1,19 @@
+Package: RGoogleAnalytics
+Title: R Handler for importing Google Analytics information from the
+        Google Analytics API
+Version: 1.3
+Date: 2013-01-01
+Author: Michael Pearmain, Nicolas Remy, Nick Mihailovski
+Maintainer: Michael Pearmain <michael.pearmain@gmail.com>
+Description: Allows a user to use the Google Analytics (GA) API to read
+    data directly from GA into R as a data.frame. As of now this script
+    allows you to: Create a new export object. Authenticate with your
+    Google Account. Return an account profile for an authorized Google
+    Account. Create a new API query Use the query to return a
+    data.frame populated with metrics.  It requires
+	RCurl and rjson packages. 
+License: Apache License (==2.0)
+LazyLoad: yes
+Depends: rjson, RCurl
+Collate: 'QueryBuilder.R' 'RGoogleAnalytics.R'
+Packaged: 2013-05-08 18:38:36 UTC; vignesh

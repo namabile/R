@@ -245,6 +245,7 @@ RGoogleAnalytics <- function() {
 
     header.value <- parseHTTPHeader(header$value())
     header$reset()
+    print(header.value)
 
     return(list(body = response,
                 status = list(code = header.value[['status']],

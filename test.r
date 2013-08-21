@@ -4,14 +4,16 @@ rm(list=ls())
 setwd("c:/sites/R")
 # load in library
 source("lib/lib.r")
-credentials.path <- paste(dir,"/lib/RGoogleAnalytics/R/credentials.txt", sep="")
-credentials <- scan(credentials.path, what = character(), quiet=TRUE)
+source("lib/RGoogleAnalytics 1.3/R/QueryBuilder.R")
+source("lib/RGoogleAnalytics 1.3/R/RGoogleAnalytics.R")
 
 #connect to GA
-ga <- GA()
-ga$GAConnect(credentials[0], credentials[1])
-ga$GetProfileIDs()
+query <- QueryBuilder()
+access_token <- query$authorize()
+ga <- RGoogleAnalytics()
+ga.profiles <- ga$GetProfileData(access_token)
 
+stop()
 change_date <- mdy('11/8/2011')
 yesterday <- mdy('2/27/2012')
 change_date2 <- change_date + ddays(1)

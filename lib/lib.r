@@ -6,6 +6,7 @@ library(RCurl) 		## to connnect to APIs and web data
 library(XML)  		## to parse XML web responses
 library(lubridate) 	## for easier date handling
 library(RODBC) 		## to connect to SQL data sources
+library(rjson) 		## need to parse json data from api responses
 
 # set working directory
 dir <- "c:/sites/R"
