@@ -78,15 +78,15 @@ RGoogleAnalytics <- function() {
   # Constants.
   kMaxDefaultRows <- 10000
   kMaxPages <- 100
-  
+
   # set curl options for the function globally
   # allows us to bypass SSL since we don't have the certificate
   curl <- getCurlHandle()
   options(RCurlOptions = list(ssl.verifypeer=FALSE))
   curlSetOpt(curl = curl)
 
-   # set path to auth token locally and make it available to all private members
-  token.path <- paste(dir,"lib/RGoogleAnalytics/R/gatoken.txt", sep="")
+  # set path to auth token locally and make it available to all private members
+  token.path <- paste(dir,"/lib/RGoogleAnalytics/R/gatoken.txt", sep="")
 
   # Private members.
   # We set the authorization token to ensure the user can access the profile
@@ -113,6 +113,9 @@ RGoogleAnalytics <- function() {
             auth.token <<- NULL
           }
       }
+    } else {
+      file.create(token.path)
+      auth.token <<- NULL
     }
     return(invisible())
   }
@@ -167,8 +170,6 @@ RGoogleAnalytics <- function() {
     # Returns:
     #   A stop call if the auth.token has not been retrieved.
     CheckAuthTokenRenew()
-    if (is.null(auth.token))
-      stop("Please enter the user name and password in SetCredentials")
   }
 
   GetAnyXMLAttribute <- function(vNode, attr.name) {
@@ -483,7 +484,7 @@ RGoogleAnalytics <- function() {
     if (ncol(df.ci) > 0 && nrow(df.ci) > 0) {
       df <- cbind(df.value, df.ci[colSums(df.ci) != 0])
     }
-    
+
     # get the names of the Aggregates on the metrics
     aggr.check <- unlist(xpathApply(feed.xml,
                                     "//dxp:aggregates/dxp:metric",
@@ -608,7 +609,7 @@ RGoogleAnalytics <- function() {
       return(df)
 
     } else {
-      # Handle pagination. First get the number of pages needed. Thenxml 
+      # Handle pagination. First get the number of pages needed. Thenxml
       # update the start index for each page and request the data.
 
       pagination <- min(kMaxPages, ceiling(df$total.results /

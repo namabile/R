@@ -1,11 +1,15 @@
-#will remove ALL objects 
+#will remove ALL objects
 rm(list=ls())
 
+setwd("c:/sites/R")
 # load in library
-source("x:/ad hoc/R/lib/lib.r")
+source("lib/lib.r")
+credentials.path <- paste(dir,"/lib/RGoogleAnalytics/R/credentials.txt", sep="")
+credentials <- scan(credentials.path, what = character(), quiet=TRUE)
 
 #connect to GA
 ga <- GA()
+ga$GAConnect(credentials[0], credentials[1])
 ga$GetProfileIDs()
 
 change_date <- mdy('11/8/2011')

@@ -8,7 +8,7 @@ library(lubridate) 	## for easier date handling
 library(RODBC) 		## to connect to SQL data sources
 
 # set working directory
-dir <- "x:/ad hoc/r/"
+dir <- "c:/sites/R"
 libpath <- paste(dir,"/lib/",sep="")
 
 ## Load Google Analytics libraries
@@ -50,10 +50,10 @@ GA <- function() {
 		ga <- RGoogleAnalytics()
 		ga$CheckAuthToken()
 		if(is.null(auth.token)) {
-			if (username == NULL || pasword == NULL) {
+			if(is.null(username) || is.null(password)) {
 				stop("Please provide your username and/or password")
 			}
-			ga$setCredentials(username, password)
+			ga$SetCredentials(username, password)
 		}
 		return(ga)
 	}
@@ -73,10 +73,7 @@ GA <- function() {
 		profiles <- profiles$profile
 		rownames(profiles) <- profiles$ProfileName
 
-		rg_profile <<- as.character(profiles["Razorgator", "TableId"])
-		tickco_profile <<- as.character(profiles["Tickco", "TableId"])
-
-		return(list(rg_profile = rg_profile, tickco_profile = tickco_profile))
+		return(list(profiles))
 	}
 
 	GetSegments <- function () {
@@ -86,20 +83,21 @@ GA <- function() {
 		segments <- ga$GetProfileData()
 		segments <- segments$segments
 		rownames(segments) <- segments$SegmentName
-		
+
 		return(segments)
 	}
 
 return(list(
 	GetReportData = GetReportData,
 	GetProfileIDs = GetProfileIDs,
-	GetSegments = GetSegments
+	GetSegments = GetSegments,
+	GAConnect = GAConnect
 	))
 }
 
 ## begin SQL helper functions
 SQL <- function() {
-	
+
 	connect <- function() {
 		##	Private helper function to establish a connection to the RG production database
 		## 	Log in credentials are passed via Windows authentication and are thus blank in the connection object
@@ -136,18 +134,18 @@ SQL <- function() {
 		## returns:		a datafrem with the SQL query results or prints an error
 
 		query <- scan(file, what = character(), quiet = TRUE, sep ="\n")
-		
+
 		## remove use command if it's in there since I can't figure out how to make it work on ODBC
 		if (tolower(substr(query[1],1,3)) == "use") {
 			query<- scan(file, what = character(), quiet = TRUE, skip = 1, sep ="\n")
 		}
-		
+
 		## remove tabs
 		query <- gsub("\t","", query)
-		
+
 		## remove comments from beginning of lines
 		for (i in 1:length(query)) {
-			
+
 			if (substr(query[i],1,2) == "--") {
 				query[i] <- ""
 			}
@@ -189,7 +187,7 @@ SQL <- function() {
 				j <- j + 1
 			}
 		}
-		
+
 		## run commands specified in the commands object
 		results <- c()
 		for (i in 1:length(commands)) {
@@ -197,7 +195,7 @@ SQL <- function() {
 			result <- query(command)
 			results <- c(results, result)
 		}
-		
+
 		## return for debugging
 		return(list( results = results, query = q))
 
